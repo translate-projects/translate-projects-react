@@ -55,10 +55,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/neiderruiz/translate-projects-react.git"
+    "url": "git://github.com/translate-projects/translate-projects-react.git"
   },
   "bugs": {
-    "url": "http://github.com/neiderruiz/translate-projects-react/issues"
+    "url": "http://github.com/translate-projects/translate-projects-react/issues"
   },
   "author": {
     "name": "Neider Ruiz",
