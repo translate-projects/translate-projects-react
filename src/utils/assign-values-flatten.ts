@@ -1,15 +1,26 @@
-import { TypeJson, TypeSimpleJson } from "translate-projects-core/types";
-import { generateHashText } from "translate-projects-core/utils";
+import { TypeJson, TypeSimpleJson } from 'translate-projects-core/types';
+import { generateHashText } from 'translate-projects-core/utils';
 
-export const assignValuesFlatten = async (jsonFlatten: TypeJson, data: TypeSimpleJson) => {
+export const assignValuesFlatten = async (
+  originalFlatten: TypeJson,
+  apiResultJson: TypeSimpleJson
+) => {
+  const addvaluesFlatten: TypeJson = {};
 
-    const addvaluesFlatten: TypeJson = {};
-    for (const key in jsonFlatten) {
-        if (data[await generateHashText(jsonFlatten[key])]) {
-            addvaluesFlatten[key] = data[await generateHashText(jsonFlatten[key])];
-        }
+  for (const key in originalFlatten) {
+    const text_base = originalFlatten[key].trim();
+    // generate key based on text
+    let currentKey = await generateHashText(key);
+
+    if ((await generateHashText(text_base)) !== currentKey) {
+      // if key is not the same as text, add text to key
+      currentKey = key;
     }
 
-    return addvaluesFlatten;
+    const text = apiResultJson[currentKey];
 
-};  
+    addvaluesFlatten[key] = text;
+  }
+
+  return addvaluesFlatten;
+};
