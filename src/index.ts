@@ -1,5 +1,3 @@
 import { translateProject } from './utils/translate-project';
 
-export {
-  translateProject
-};
+export { translateProject };
