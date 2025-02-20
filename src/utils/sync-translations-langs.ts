@@ -9,6 +9,7 @@ import {
   updateFileCache,
 } from 'translate-projects-core/utils';
 import { assignValuesFlatten } from './assign-values-flatten';
+import { compareKeysArrayLangs } from './compare-keys-array-langs';
 import { flattenJson } from './flatten-json';
 import { FilePathData } from './translate-project';
 import { unflattenJson } from './unflatten-json';
@@ -50,13 +51,18 @@ export const syncTranslationsLangs = async ({
       }
 
       if (sourceLang !== locale) {
-        if (item.translations[locale] && item.in_cache) {
+        const { areEqual } = compareKeysArrayLangs(
+          Object.keys(jsonFlatten ?? {}),
+          Object.keys(item.translations[locale] ?? {})
+        );
+
+        if (item.translations[locale] && item.in_cache && areEqual) {
           if (Object.keys(item.translations[locale]).length) {
             translations = item.translations[locale];
           }
         }
 
-        if (!item.translations[locale] || !item.in_cache) {
+        if (!item.translations[locale] || !item.in_cache || !areEqual) {
           if (Object.keys(jsonFlatten).length) {
             await Logger.info(`Syncing translations (${locale}) ... \n`);
 
