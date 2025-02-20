@@ -42,7 +42,7 @@
   "dependencies": {
     "glob": "^11.0.1",
     "react-i18next": "^15.4.0",
-    "translate-projects-core": "^0.0.7"
+    "translate-projects-core": "^0.0.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.23.0",
