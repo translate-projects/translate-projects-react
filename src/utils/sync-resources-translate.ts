@@ -1,5 +1,5 @@
 import { validateChangesFiles } from 'translate-projects-core';
-import { TypeListLang } from 'translate-projects-core/types';
+import { FilePathData, TypeListLang } from 'translate-projects-core/types';
 import {
   assignHashKeysJson,
   Logger,
@@ -8,7 +8,6 @@ import {
   updateFileCache,
 } from 'translate-projects-core/utils';
 import { flattenJson } from './flatten-json';
-import { FilePathData } from './translate-project';
 
 type SyncResourcesTranslateOptions = {
   apiKey: string;
@@ -28,7 +27,7 @@ export const syncResourcesTranslate = async ({
     data: filesCache,
   });
 
-  if (!result.data) {
+  if (!result?.data) {
     return {};
   }
 
