@@ -1,25 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TypeListLang, TypeProject } from 'translate-projects-core/types';
+import { TypeListLang } from 'translate-projects-core/types';
 import { Logger, processDirectoryCache } from 'translate-projects-core/utils';
 import { scannerTranslations } from './scanner-translations';
 import { syncResourcesTranslate } from './sync-resources-translate';
 import { syncTranslationsLangs } from './sync-translations-langs';
-
-export interface FilePathData {
-  path: string;
-  cache_hash: string;
-  translations: Record<string, { [key: string]: string }>;
-  sources: Record<string, string>;
-  in_cache?: boolean;
-}
 
 export type TranslateProjectOptions = {
   outputDir: string;
   sourceLang: TypeListLang;
   targetLangs: TypeListLang[];
   apiKey: string;
-  typeProject: TypeProject;
   scanner?:
     | {
         sourceDir: string;
