@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TypeListLang } from 'translate-projects-core/types';
+import { FilePathData, TypeListLang } from 'translate-projects-core/types';
 import {
   assignHashKeysJson,
   Logger,
@@ -11,7 +11,6 @@ import {
 import { assignValuesFlatten } from './assign-values-flatten';
 import { compareKeysArrayLangs } from './compare-keys-array-langs';
 import { flattenJson } from './flatten-json';
-import { FilePathData } from './translate-project';
 import { unflattenJson } from './unflatten-json';
 
 type SyncTranslationsLangOptions = {
