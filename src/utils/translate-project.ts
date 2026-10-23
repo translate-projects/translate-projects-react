@@ -27,7 +27,8 @@ export const translateProject = async ({
 }: TranslateProjectOptions) => {
   if (!sourceLang) {
     await Logger.error(`Error sourceLang is required`);
-    return;
+    process.exitCode = 1;
+    return false;
   }
 
   await Logger.success(`🚀 Starting translation process...\n`);
@@ -41,18 +42,17 @@ export const translateProject = async ({
     fs.mkdirSync(folderLangBase, { recursive: true });
   }
 
-  if (scanner) {
-    await scannerTranslations({
-      folderLangBase,
-      outputDir,
-      scanner,
-      sourceLang,
-    });
-  }
-
-  await Logger.info(`Loading translation data...\n`);
-
   try {
+    if (scanner) {
+      await scannerTranslations({
+        outputDir,
+        scanner,
+        sourceLang,
+      });
+    }
+
+    await Logger.info(`Loading translation data...\n`);
+
     const { filesCache, filesPath } = await processDirectoryCache({
       dir: folderLangBase,
       allowedExtensions: ['.json'], // only process .json files
@@ -80,11 +80,11 @@ export const translateProject = async ({
       targetLangs,
     });
 
-    process.exit(0);
+    return true;
   } catch (error: any) {
-    Logger.error(`\n🛑 **Error:** ${error.message}`);
-    Logger.error(
-      '⏳ A timeout error has occurred. We are working to resolve it. Please try again later.\n'
-    );
+    await Logger.error(`\n🛑 **Error:** ${error?.message ?? error}\n`);
+    // non-zero exit for CI, without killing the caller's process
+    process.exitCode = 1;
+    return false;
   }
 };

@@ -27,12 +27,14 @@ export const syncResourcesTranslate = async ({
     data: filesCache,
   });
 
-  if (!result?.data) {
-    return {};
+  if (!result) {
+    throw new Error('Could not validate file changes with the API');
   }
 
+  const changed = result.data ?? {};
+
   for (const fileHash of Object.keys(filesPath)) {
-    filesPath[fileHash].in_cache = Boolean(!result.data[fileHash]);
+    filesPath[fileHash].in_cache = Boolean(!changed[fileHash]);
   }
 
   // sycn files data
@@ -44,7 +46,10 @@ export const syncResourcesTranslate = async ({
       continue;
     }
 
-    const jsonData = flattenJson(readJsonFile(item.path));
+    const json = readJsonFile(item.path);
+    if (!json) throw new Error(`Invalid JSON file: ${item.path}`);
+
+    const jsonData = flattenJson(json);
 
     const jsonFlatten = await assignHashKeysJson(jsonData);
 
@@ -57,7 +62,7 @@ export const syncResourcesTranslate = async ({
       `🔄 Syncing (${Object.keys(jsonFlatten).length}) - ${item.path}... \n`
     );
 
-    await syncResources({
+    const synced = await syncResources({
       sourceLang,
       data: jsonFlatten,
       typeProject: 'react',
@@ -65,6 +70,11 @@ export const syncResourcesTranslate = async ({
       route_file: item.path,
       cache_hash: item.cache_hash,
     });
+
+    // syncResources returns null when the API or the task fails
+    if (synced === null) {
+      throw new Error(`Could not sync sources of ${item.path}`);
+    }
 
     await updateFileCache({
       fileHash: key,

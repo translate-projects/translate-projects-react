@@ -28,7 +28,7 @@ export const transpile = async ({
   const regexTransWithKey =
     /<Trans[^>]*i18nKey=['"`]([^'`"]*)['"`][^>]*>([\s\S]*?)<\/Trans>/g;
 
-  glob.sync(`${sourceDir}/**/*.{js,jsx,ts,tsx}`).forEach(async (file) => {
+  glob.sync(`${sourceDir}/**/*.{js,jsx,ts,tsx}`).forEach((file) => {
     // Skip if it's a directory
     if (fs.statSync(file).isDirectory()) return;
 
@@ -74,12 +74,10 @@ export const transpile = async ({
     }
   });
 
-  // Make sure the output directory exists
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-
   const outputFilePath = path.join(outputDir, sourceLang, 'translation.json');
+
+  // Make sure the language folder exists
+  fs.mkdirSync(path.dirname(outputFilePath), { recursive: true });
 
   fs.writeFileSync(outputFilePath, JSON.stringify(translations, null, 2));
 

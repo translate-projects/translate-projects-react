@@ -10,14 +10,13 @@ export const flattenJson = (
       const currentKey = parentKey ? `${parentKey}.${key}` : key;
       const value = inputJson[key];
 
-      if (
-        typeof value === 'object' &&
-        value !== null &&
-        !Array.isArray(value)
-      ) {
+      if (value === null || value === undefined) continue;
+
+      // arrays flatten by index (list.0, list.1) like nested objects
+      if (typeof value === 'object') {
         flattenJson(value, currentKey, result);
       } else {
-        result[currentKey.trim()] = value.trim();
+        result[currentKey.trim()] = String(value).trim();
       }
     }
   }
