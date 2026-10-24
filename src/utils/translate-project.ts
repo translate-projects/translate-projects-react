@@ -25,8 +25,16 @@ export const translateProject = async ({
   outputDir = './public/locales',
   scanner = false,
 }: TranslateProjectOptions) => {
-  if (!sourceLang) {
-    await Logger.error(`Error sourceLang is required`);
+  const invalid = !sourceLang
+    ? 'sourceLang is required'
+    : !apiKey
+      ? 'apiKey is required (set TRANSLATE_PROJECTS_API_KEY)'
+      : !Array.isArray(targetLangs) || !targetLangs.length
+        ? 'targetLangs must be a non-empty array'
+        : null;
+
+  if (invalid) {
+    await Logger.error(`Error ${invalid}`);
     process.exitCode = 1;
     return false;
   }

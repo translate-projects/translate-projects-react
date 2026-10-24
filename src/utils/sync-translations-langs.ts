@@ -22,8 +22,8 @@ type SyncTranslationsLangOptions = {
   outputDir: string;
 };
 
-// shortcut: fixed limit; the backend queues tasks (worker concurrency=1) and a
-// queued task gets no progress for up to 120 s, so keep it low until that changes
+// shortcut: fixed limit matching the backend worker (3 tasks at a time); more would
+// only queue, and a queued task gets no progress (core gives up after 300 s)
 const MAX_PARALLEL_LANGS = 3;
 
 const mapLimit = async <T, R>(
@@ -126,11 +126,38 @@ export const syncTranslationsLangs = async ({
         translations
       );
 
-      const dataSave = unflattenJson(addvaluesFlatten, '.', json_base);
-
       const itemPath = path.basename(item.path);
 
       const outputFilePath = path.join(folderLang, itemPath);
+
+      // Texts the API did not return, e.g. MISSING_API_KEY (project without AI key)
+      const missing = toFetch.includes(locale)
+        ? Object.keys(jsonData).filter((k) => addvaluesFlatten[k] === undefined)
+        : [];
+
+      if (missing.length) {
+        // keep what an earlier run already wrote instead of dropping it
+        const previous = fs.existsSync(outputFilePath)
+          ? flattenJson(readJsonFile(outputFilePath) ?? {})
+          : {};
+        for (const k of missing) {
+          if (previous[k] !== undefined) addvaluesFlatten[k] = previous[k];
+        }
+        const untranslated = missing.filter(
+          (k) => addvaluesFlatten[k] === undefined
+        );
+
+        await Logger.warning(
+          `${missing.length} text(s) came back without translation in ${locale} (${untranslated.length} not in the previous file either). Check the project's AI key.\n`
+        );
+        if (untranslated.length) {
+          failed.push(
+            `${locale} (${item.path}): ${untranslated.length} untranslated`
+          );
+        }
+      }
+
+      const dataSave = unflattenJson(addvaluesFlatten, '.', json_base);
 
       fs.writeFileSync(outputFilePath, JSON.stringify(dataSave, null, 2));
 

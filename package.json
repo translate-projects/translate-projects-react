@@ -1,6 +1,6 @@
 {
   "name": "translate-projects-react",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Internationalize and manage your website easily",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,7 +32,8 @@
     "format": "prettier --write .",
     "lint:fix": "eslint --fix",
     "prepare": "husky",
-    "test": "npm run build && node --test 'test/*.test.js'"
+    "test": "npm run build && node --test 'test/*.test.js'",
+    "prepublishOnly": "npm test"
   },
   "lint-staged": {
     "**/*.{js,ts,json,md}": [
@@ -43,7 +44,7 @@
   "dependencies": {
     "glob": "^11.0.1",
     "react-i18next": "^15.4.0",
-    "translate-projects-core": "^0.0.10"
+    "translate-projects-core": "^0.0.11"
   },
   "devDependencies": {
     "@babel/cli": "^7.23.0",

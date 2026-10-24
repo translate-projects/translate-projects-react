@@ -114,13 +114,19 @@ npm install
 npm test   # builds, then runs node:test against a local mock API (no AI tokens)
 ```
 
-The tests need a `translate-projects-core` that supports `TRANSLATE_PROJECTS_API_URL`. Until it is published, link the local core: `ln -sfn ../../core node_modules/translate-projects-core` (run it again after every `npm install`).
+This package needs `translate-projects-core@^0.0.11`. Until that version is on npm, `npm install` fails with `notarget`; install against the local core instead:
 
-One test hits the real backend and spends AI tokens; it only runs when asked:
+```bash
+npm install --no-save ../core
+```
+
+The tests cover extraction, sync, cache, parallel languages and API errors (invalid token, 4xx/5xx, partial responses, tasks that never finish) against a local mock of the API. One more test hits the real backend and spends AI tokens; it only runs when asked:
 
 ```bash
 REAL_BACKEND=1 TRANSLATE_PROJECTS_API_KEY=... npm test
 ```
+
+`npm publish` runs the build and the tests first (`prepublishOnly`).
 
 ## Support
 
