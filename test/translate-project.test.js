@@ -53,7 +53,7 @@ const readLang = (dir, lang, name) =>
   JSON.parse(fs.readFileSync(langFile(dir, lang, name), 'utf8'));
 
 // Runs translateProject in its own process, like a user's translate.js
-const run = (dir, apiUrl, options = {}, timeoutMs = 30000) =>
+const run = (dir, apiUrl, options = {}, timeoutMs = 30000, env = {}) =>
   new Promise((resolve, reject) => {
     const opts = {
       sourceLang: 'es',
@@ -70,6 +70,7 @@ const run = (dir, apiUrl, options = {}, timeoutMs = 30000) =>
         ...process.env,
         HOME: path.join(dir, 'home'),
         TRANSLATE_PROJECTS_API_URL: apiUrl,
+        ...env,
       },
     });
     let output = '';
@@ -211,6 +212,88 @@ test('cache: only the file that changed is synced and translated again', async (
     guardar: '[en] Guardar',
     cancelar: '[en] Cancelar',
   });
+});
+
+test('apiKey defaults to the TRANSLATE_PROJECTS_API_KEY environment variable', async (t) => {
+  const api = await mock(t);
+  const dir = makeProject();
+
+  const { code, output } = await run(
+    dir,
+    api.url,
+    { apiKey: undefined },
+    30000,
+    {
+      TRANSLATE_PROJECTS_API_KEY: 'test-key',
+    }
+  );
+
+  assert.strictEqual(code, 0, output);
+  assert.ok(api.state.requests.every((r) => r.auth === 'Token test-key'));
+});
+
+test('partial translation is retried on the next run once the AI key is set', async (t) => {
+  const untranslatable = ['Versión 1.0'];
+  const api = await mock(t, { untranslatable });
+  const dir = makeProject();
+
+  const first = await run(dir, api.url);
+  assert.strictEqual(first.code, 1);
+  assert.match(
+    first.output,
+    /MISSING_API_KEY|Configura el modelo y la API key/
+  );
+  assert.strictEqual(readLang(dir, 'en')['v1.0'], undefined);
+
+  untranslatable.length = 0; // the user configures the project's AI key
+  const second = await run(dir, api.url);
+
+  assert.strictEqual(second.code, 0, second.output);
+  assert.strictEqual(api.count(TRANSLATIONS), 2);
+  assert.strictEqual(readLang(dir, 'en')['v1.0'], '[en] Versión 1.0');
+});
+
+test('cache: adding a language requests only that language', async (t) => {
+  const api = await mock(t);
+  const dir = makeProject();
+
+  assert.strictEqual(
+    (await run(dir, api.url, { targetLangs: ['en'] })).code,
+    0
+  );
+  const second = await run(dir, api.url, { targetLangs: ['en', 'fr'] });
+
+  assert.strictEqual(second.code, 0, second.output);
+  assert.strictEqual(api.count(LOAD_SOURCES), 1);
+  assert.strictEqual(api.count(TRANSLATIONS, 'en'), 1);
+  assert.strictEqual(api.count(TRANSLATIONS, 'fr'), 1);
+  assert.strictEqual(
+    readLang(dir, 'fr').torneo.titulo,
+    '[fr] Torneo relámpago'
+  );
+});
+
+test('JSON files in subfolders keep their folder in every language', async (t) => {
+  const api = await mock(t);
+  const dir = makeProject({
+    'translation.json': source,
+    'admin/users.json': { titulo: 'Usuarios' },
+  });
+
+  const { code, output } = await run(dir, api.url, {
+    targetLangs: ['en', 'fr'],
+  });
+
+  assert.strictEqual(code, 0, output);
+  assert.deepStrictEqual(readLang(dir, 'fr', 'admin/users.json'), {
+    titulo: '[fr] Usuarios',
+  });
+  assert.ok(!fs.existsSync(langFile(dir, 'fr', 'users.json')));
+  assert.ok(!fs.existsSync(langFile(dir, 'es', 'users.json')));
+  assert.strictEqual(
+    readLang(dir, 'en').torneo.titulo,
+    '[en] Torneo relámpago'
+  );
 });
 
 test('missing apiKey fails before any request', async (t) => {

@@ -114,21 +114,23 @@ export const syncTranslationsLangs = async ({
         });
       }
 
-      const folderLang = path.join(outputDir, locale);
+      // keep subfolders: <source>/admin/users.json -> <locale>/admin/users.json
+      const itemPath = path.relative(
+        path.join(outputDir, sourceLang),
+        item.path
+      );
 
-      if (!fs.existsSync(folderLang)) {
+      const outputFilePath = path.join(outputDir, locale, itemPath);
+
+      if (!fs.existsSync(path.dirname(outputFilePath))) {
         await Logger.info(`📂 Creating output directory... \n`);
-        fs.mkdirSync(folderLang, { recursive: true });
+        fs.mkdirSync(path.dirname(outputFilePath), { recursive: true });
       }
 
       const addvaluesFlatten = await assignValuesFlatten(
         jsonData,
         translations
       );
-
-      const itemPath = path.basename(item.path);
-
-      const outputFilePath = path.join(folderLang, itemPath);
 
       // Texts the API did not return, e.g. MISSING_API_KEY (project without AI key)
       const missing = toFetch.includes(locale)

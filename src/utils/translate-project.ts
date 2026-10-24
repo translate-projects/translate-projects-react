@@ -10,7 +10,8 @@ export type TranslateProjectOptions = {
   outputDir: string;
   sourceLang: TypeListLang;
   targetLangs: TypeListLang[];
-  apiKey: string;
+  /** defaults to the TRANSLATE_PROJECTS_API_KEY environment variable */
+  apiKey?: string;
   scanner?:
     | {
         sourceDir: string;
@@ -21,7 +22,7 @@ export type TranslateProjectOptions = {
 export const translateProject = async ({
   targetLangs,
   sourceLang,
-  apiKey,
+  apiKey = process.env.TRANSLATE_PROJECTS_API_KEY,
   outputDir = './public/locales',
   scanner = false,
 }: TranslateProjectOptions) => {
@@ -33,7 +34,7 @@ export const translateProject = async ({
         ? 'targetLangs must be a non-empty array'
         : null;
 
-  if (invalid) {
+  if (invalid || !apiKey) {
     await Logger.error(`Error ${invalid}`);
     process.exitCode = 1;
     return false;

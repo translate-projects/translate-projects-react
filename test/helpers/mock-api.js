@@ -1,6 +1,6 @@
 // Local stand-in for the Translate Projects API: HTTP endpoints + progress WebSocket.
-// Mirrors api.translateprojects.dev: no Authorization -> 401 UNAUTHORIZED; a wrong
-// token -> validate/GET still answer 200 (all changed / {}), POSTs answer 400.
+// Mirrors api.translateprojects.dev (checked 2026-10-25): a missing or wrong token
+// gets 401 UNAUTHORIZED "Token no válido" on every endpoint.
 // "Translates" by prefixing each source text with "[lang] ".
 const http = require('http');
 const { WebSocketServer } = require('ws');
@@ -12,6 +12,8 @@ const { WebSocketServer } = require('ws');
  * @param {Array<{path: string, status: number, times?: number, lang?: string, code?: string}>} [opts.failures]
  *   answer `status` to the first `times` (default: all) matching requests
  * @param {string[]} [opts.untranslatable] source texts the backend cannot translate
+ *   because the project has no AI key: POST answers PARTIAL / MISSING_API_KEY and GET
+ *   lacks them. The array is read live, so a test can empty it to "configure the key"
  *   (what MISSING_API_KEY looks like from the client: GET simply lacks them)
  * @param {string[]} [opts.stallLangs] translation tasks that never reach 100 %
  */
@@ -68,29 +70,24 @@ const startMockApi = async ({
         );
       }
 
-      if (auth.split(' ').length !== 2) {
+      if (auth !== `Token ${token}`) {
         return fail(res, 401, 'UNAUTHORIZED', 'Token no válido');
       }
-      const valid = auth === `Token ${token}`;
 
       if (url.pathname === '/v1/translations/validate-changes-files') {
         const changed = {};
         for (const [file, hash] of Object.entries(body || {})) {
-          if (!valid || !state.synced.has(hash)) changed[file] = hash;
+          if (!state.synced.has(hash)) changed[file] = hash;
         }
         return ok(res, changed, 'Change detected');
       }
       if (url.pathname === '/v1/translations/language-project') {
         const data = {};
-        if (valid) {
-          for (const [k, v] of Object.entries(state.sources)) {
-            if (!untranslatable.includes(v))
-              data[k] = `[${q.target_lang}] ${v}`;
-          }
+        for (const [k, v] of Object.entries(state.sources)) {
+          if (!untranslatable.includes(v)) data[k] = `[${q.target_lang}] ${v}`;
         }
         return ok(res, data, 'Translations');
       }
-      if (!valid) return fail(res, 400, 'INVALID_INPUT', 'Token no válido');
 
       if (url.pathname === '/v1/translations/load-sources') {
         Object.assign(state.sources, body);
@@ -105,6 +102,16 @@ const startMockApi = async ({
           translation: true,
           stall: stallLangs.includes(q.target_lang),
         };
+        if (untranslatable.length) {
+          return reply(res, 200, {
+            status: 'PARTIAL',
+            code: 'MISSING_API_KEY',
+            error: 'MISSING_API_KEY',
+            message:
+              'Configura el modelo y la API key de IA del proyecto para traducir los textos nuevos.',
+            data: { task_id: id },
+          });
+        }
         return ok(res, { task_id: id }, 'Task created');
       }
       fail(res, 404, 'UNKNOWN_ERROR', 'not found');
