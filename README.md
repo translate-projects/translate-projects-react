@@ -2,6 +2,8 @@
 
 Translate the [i18next](https://www.i18next.com/) JSON files of your React app into other languages with one command. You write the texts in one language (for example `public/locales/es/translation.json`) and `translate-projects-react` creates `public/locales/en/translation.json`, `public/locales/fr/translation.json`, … with the same keys and structure, translated by [Translate Projects](https://translateprojects.dev).
 
+📖 **Documentation:** [doc.translateprojects.dev/docs/frameworks-javascript/react](https://doc.translateprojects.dev/docs/frameworks-javascript/react)
+
 - Runs as a Node.js script (locally or in CI); nothing is added to your app bundle.
 - Optional **scanner**: collects the texts from `t('...')` and `<Trans>` in your code, so you don't have to write the source JSON by hand.
 - **Cache**: only new or changed texts are sent; a run with no changes makes a single request.
