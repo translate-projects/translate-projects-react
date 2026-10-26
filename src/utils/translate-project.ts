@@ -17,6 +17,8 @@ export type TranslateProjectOptions = {
         sourceDir: string;
       }
     | boolean;
+  /** asks the server for every language even if the cache says it is up to date */
+  force?: boolean;
 };
 
 export const translateProject = async ({
@@ -25,6 +27,7 @@ export const translateProject = async ({
   apiKey = process.env.TRANSLATE_PROJECTS_API_KEY,
   outputDir = './public/locales',
   scanner = false,
+  force = false,
 }: TranslateProjectOptions) => {
   const invalid = !sourceLang
     ? 'sourceLang is required'
@@ -87,6 +90,7 @@ export const translateProject = async ({
       outputDir,
       sourceLang,
       targetLangs,
+      force,
     });
 
     return true;

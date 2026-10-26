@@ -177,6 +177,18 @@ test('cache: a second run with no changes sends and translates nothing', async (
   assert.strictEqual(readLang(dir, 'en')['v1.0'], '[en] Versión 1.0');
 });
 
+test('force: asks the server again even if the cache is up to date', async (t) => {
+  const api = await mock(t);
+  const dir = makeProject();
+
+  assert.strictEqual((await run(dir, api.url)).code, 0);
+  const forced = await run(dir, api.url, { force: true });
+
+  assert.strictEqual(forced.code, 0, forced.output);
+  assert.strictEqual(api.count(LOAD_SOURCES), 1);
+  assert.strictEqual(api.count(TRANSLATIONS), 2);
+});
+
 test('cache: only the file that changed is synced and translated again', async (t) => {
   const api = await mock(t);
   const dir = makeProject({

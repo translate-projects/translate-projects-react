@@ -20,6 +20,7 @@ type SyncTranslationsLangOptions = {
   sourceLang: TypeListLang;
   targetLangs: TypeListLang[];
   outputDir: string;
+  force?: boolean;
 };
 
 // shortcut: fixed limit matching the backend worker (3 tasks at a time); more would
@@ -51,6 +52,7 @@ export const syncTranslationsLangs = async ({
   sourceLang,
   apiKey,
   outputDir,
+  force = false,
 }: SyncTranslationsLangOptions) => {
   const items = Object.entries(filesPath);
   const failed: string[] = [];
@@ -64,6 +66,7 @@ export const syncTranslationsLangs = async ({
     const jsonFlatten = await assignHashKeysJson(jsonData);
 
     const isCached = (locale: TypeListLang) =>
+      !force &&
       Boolean(item.translations[locale]) &&
       Boolean(item.in_cache) &&
       compareKeysArrayLangs(

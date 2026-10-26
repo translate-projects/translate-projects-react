@@ -135,13 +135,14 @@ export function Home() {
 
 ## Options
 
-| Option        | Type                               | Default                                  | Description                                                                                |
-| ------------- | ---------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `sourceLang`  | `string`                           | — (required)                             | Language your texts are written in, e.g. `'es'`. Its folder is `<outputDir>/<sourceLang>`. |
-| `targetLangs` | `string[]`                         | — (required, non-empty)                  | Languages to generate, e.g. `['en', 'pt-BR', 'fr']`. Don't include `sourceLang`.           |
-| `apiKey`      | `string`                           | `process.env.TRANSLATE_PROJECTS_API_KEY` | API token of your Translate Projects project.                                              |
-| `outputDir`   | `string`                           | `'./public/locales'`                     | Folder that contains one subfolder per language. Relative to where you run the command.    |
-| `scanner`     | `boolean \| { sourceDir: string }` | `false`                                  | Build `<outputDir>/<sourceLang>/translation.json` from your code. `true` scans `./src`.    |
+| Option        | Type                               | Default                                  | Description                                                                                                                                                                                                         |
+| ------------- | ---------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sourceLang`  | `string`                           | — (required)                             | Language your texts are written in, e.g. `'es'`. Its folder is `<outputDir>/<sourceLang>`.                                                                                                                          |
+| `targetLangs` | `string[]`                         | — (required, non-empty)                  | Languages to generate, e.g. `['en', 'pt-BR', 'fr']`. Don't include `sourceLang`.                                                                                                                                    |
+| `apiKey`      | `string`                           | `process.env.TRANSLATE_PROJECTS_API_KEY` | API token of your Translate Projects project.                                                                                                                                                                       |
+| `outputDir`   | `string`                           | `'./public/locales'`                     | Folder that contains one subfolder per language. Relative to where you run the command.                                                                                                                             |
+| `scanner`     | `boolean \| { sourceDir: string }` | `false`                                  | Build `<outputDir>/<sourceLang>/translation.json` from your code. `true` scans `./src`.                                                                                                                             |
+| `force`       | `boolean`                          | `false`                                  | Ask the server for every language even if the cache says it is up to date (e.g. after fixing translations in the dashboard). Tip: `force: process.argv.includes('--force')` and run `npm run translate -- --force`. |
 
 Language codes are the ones Translate Projects knows (`en`, `fr`, `de`, `pt-BR`, …). An unknown code fails with `El idioma de destino no existe`.
 
